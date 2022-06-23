@@ -1,1 +1,124 @@
+// 1. For each session that has more than 5 students, retrieve the total_cost and the number of its female students. 
 
+
+SELECT S.Session_ID, Sum(T.Hourly_rate * S.Length) AS Total_cost, F.FCount
+FROM Sessions S, Reserved_by R, Tutor T, 
+	(SELECT R1.Session_ID, COUNT(U.User_ID) AS FCount
+           FROM User U, Reserved_by R1
+           WHERE U.gender = 'female' AND U.User_ID = R1.User_ID
+           GROUP BY R1.Session_ID ) AS F
+WHERE R.Session_ID = S.Session_ID AND T.User_ID = S.Tutor_ID
+               AND F.Session_ID = S.Session_ID
+GROUP BY S.Session_ID
+HAVING COUNT(R.User_ID) > 5;
+
+
+
+//2. Retrieve the Usernames and Ratings of the Tutors who can tutor all the subjects taught by Dr. Gregory House. 
+
+SELECT DISTINCT t.Ratings, u.User_name
+FROM Tutor t, User u
+WHERE t.User_ID = u.User_ID AND t.User_ID = 
+(SELECT DISTINCT s.Tutor_ID
+FROM Offerings o, Specializations s
+WHERE o.Subject_code = s.Specialization AND o.Class_ID IN 
+(SELECT c.Class_ID
+FROM Classes_taught c,Professor p
+WHERE c.Prof_ID = p.Prof_ID AND p.First_name = 'Gregory' AND p.Last_name = 'House')
+ );
+
+//3. Retrieve the names and the tutor(s) of the sessions that require at least two materials. 
+
+Create View Busy_sessions as (SELECT rb.User_ID, Session_Table.* FROM Reserved_by rb, (SELECT rm.Session_ID, s.Tutor_ID FROM Required_materials rm, Sessions s WHERE rm.Session_ID = s.Session_ID GROUP BY rm.Session_ID HAVING COUNT(rm.Name) >= 2) AS Session_Table WHERE rb.Session_ID = Session_Table.Session_ID)
+
+
+Rest of Code / Uses View
+SELECT bs.Session_ID, T.First_name AS Tutor_FName, T.Last_name AS Tutor_LName, u.First_name AS Student_Fname, u.Last_name AS Student_Lname
+FROM User u, Busy_Sessions bs, (
+    SELECT u.First_name, u.Last_name, bs1.Session_ID
+    FROM Busy_Sessions bs1, User u
+    WHERE bs1.Tutor_ID = u.User_ID
+) AS T
+WHERE u.User_ID = bs.User_ID AND T.Session_ID = bs.Session_ID
+GROUP BY bs.Session_ID, u.First_name;
+
+
+
+
+
+//4. Retrieve the average number of classes taught by each professor over last year. 
+
+SELECT COUNT(o.Class_ID) as Num_Classes_Taught, t.Prof_ID, p.First_name, p.Last_name
+FROM Offerings o, Classes_taught t, Professor p
+WHERE t.Class_ID = o.Class_ID AND o.Year >= 2019 AND o.Year < 2020 AND p.Prof_ID = t.Prof_ID
+GROUP BY Prof_ID;
+
+
+
+
+//5. Retrieve the name of the Professors who have not taught any class last year. 
+
+
+SELECT P.First_name, P.Last_name
+FROM Professor P
+WHERE NOT EXISTS (
+SELECT Prof_ID
+           FROM (
+		SELECT T.Prof_ID
+                      FROM Offerings O, Classes_taught T
+                      WHERE O.Year = 2020 AND O.Class_ID = T.Class_ID
+	) AS D
+           WHERE P.Prof_ID = D.Prof_ID
+);
+
+//6. Retrieve all the sessions that are hosted in 75799 and the number of students who have enrolled in each of the sessions. 
+SELECT R.Session_ID, COUNT(R.User_ID) AS Total_students
+FROM Sessions S, Location L, Reserved_by R
+WHERE L.Zip_code = 75799 AND L.Session_ID = S.Session_ID
+AND R.Session_ID = L.Session_ID
+GROUP BY S.Session_ID
+ORDER BY COUNT(R.User_ID) ASC;
+
+
+//7. For each tutor, retrieve the average number of students per session, and the number of professors who have the same subject. 
+
+SELECT U.First_name, U.Last_name, AVG(C.Count) AS Average_students, UP.PCount AS Professors_
+FROM Tutor T, User U, (
+		SELECT COUNT(R.User_ID) AS Count, S.Tutor_ID, S.Class_ID
+		FROM Reserved_by R, Sessions S
+		WHERE R.Session_ID = S.Session_ID
+		GROUP BY R.Session_ID
+	 ) AS C, (
+		SELECT COUNT(DISTINCT CT.Prof_ID) AS PCount, T1.User_ID
+		FROM Classes_taught CT, Offerings O, Specializations SP, Tutor T1
+		WHERE  SP.Specialization = O.Subject_code  
+                                AND CT.Class_ID = O.Class_ID AND T1.User_ID = SP.Tutor_ID
+		GROUP BY T1.User_ID
+             ) AS UP
+    
+WHERE C.Tutor_ID = T.User_ID AND U.User_ID = T.User_ID AND UP.User_ID = T.User_ID
+GROUP BY T.User_ID;
+
+
+
+
+//8. Retrieve the tutors who have Hourly_rate below $15 and have higher ratings than other tutors on the same subject with Hourly_rate >=$20. (not working)
+
+SELECT T1.User_ID
+FROM Tutor T1, Tutor T2,
+	(SELECT S1.Tutor_ID AS TID1, S2.Tutor_ID AS TID2
+	FROM Specializations S1
+	JOIN Specializations S2 ON S1.Specialization = S2.Specialization 
+		AND NOT S1.Tutor_ID = S2.Tutor_ID) AS SameSubject
+WHERE T1.Hourly_rate < 15 AND T1.User_ID = SameSubject.TID1 
+		AND T2.Hourly_rate >= 20 AND T2.User_ID = SameSubject.TID2 AND T1.Ratings > T2.Ratings;
+
+//9. Retrieve the distinct professors who have taught at least three classes per year in 2017-2019. (Please have three questions assigned to each member in your team. Ask me if you have any questions)
+
+Select Professor.First_name, Professor.Last_name, Offerings.Year, Classes_taught.Prof_ID
+From Professor
+Inner join Classes_taught on Classes_taught.Prof_ID = Professor.Prof_ID
+Inner Join Offerings on Offerings.Class_ID = Classes_taught.Class_ID
+Where(Offerings.Year = 2017 or Offerings.Year = 2018 or Offerings.Year = 2019)
+Group by Classes_taught.Prof_ID, Offerings.Year
+Having COUNT( Classes_taught.Class_ID ) >=3;
