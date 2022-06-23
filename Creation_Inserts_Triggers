@@ -1,0 +1,541 @@
+reate table Professor(
+  Prof_ID varchar(15) NOT NULL,
+  First_name varchar(20),
+  Last_name varchar(20),
+  primary key (Prof_ID)
+);
+
+create table Class(
+  Class_ID varchar(15) NOT NULL,
+  Name varchar(50),
+  primary key (Class_ID)
+ );
+
+Create table University(
+  University_ID varchar(15) NOT NULL,
+  University_name varchar(25),
+  Primary key (University_ID)
+);
+
+create table User(
+  User_ID varchar(15) NOT NULL,
+  Email varchar(25),
+  Birth_date varchar(10),
+  User_name varchar(25),
+  gender varchar(10),
+  First_name varchar(30),
+  Last_name varchar(30),
+  Primary key (User_ID)
+);
+
+Create table Administrator(
+  User_ID varchar(15) NOT NULL,
+  Permissions tinyint,
+  foreign key (User_ID) references User(User_ID) ON DELETE CASCADE
+);
+
+Create table Tutor(
+ User_ID varchar(15) NOT NULL,
+ Hourly_rate decimal(2, 2) NOT NULL,
+ Ratings decimal(5,1) NOT NULL,
+ foreign key (User_ID) references User(User_ID) ON DELETE CASCADE
+);
+
+create table Student(
+ User_ID varchar(15) NOT NULL,
+ Seniority varchar(15),
+ foreign key (User_ID) references User(User_ID) ON DELETE CASCADE
+);
+
+create table Subject(
+  Subject_code varchar(4) NOT NULL,
+  Subject_name varchar(15) NOT NULL,
+  Primary key (Subject_code)
+);
+
+create table Sessions(
+  Session_ID varchar(15) NOT NULL,
+  Tutor_ID varchar(15) NOT NULL,
+  Start_time varchar(15) NOT NULL,
+  Length int,
+  Date varchar(20),
+  Total_cost Decimal (2,2),
+  Class_ID varchar(15),
+  Primary key(Session_ID),
+  Foreign key (Tutor_ID) references User(User_ID) ON DELETE CASCADE,
+  Foreign key (Class_ID) references Class(Class_ID) ON DELETE CASCADE
+);
+
+
+create table Location(
+ Street varchar(20),
+ Zip_code int,
+ Location_name varchar(20),
+ Session_ID varchar(15),
+ Primary key(Street, Zip_code, Location_name),
+ foreign key (Session_ID) references Sessions(Session_ID)
+);
+
+create table Required_materials(
+  Description varchar(50),
+  Name varchar(25),
+  Session_ID varchar(15),
+  foreign key (Session_ID) references Sessions(Session_ID) ON DELETE CASCADE
+);
+
+
+Create table Classes_taught(
+  Class_ID varchar(15) NOT NULL,
+  Prof_ID varchar(15) NOT NULL,
+  Foreign key (Prof_ID) references Professor(Prof_ID) on delete cascade,
+  Foreign key (Class_ID) references Class(Class_ID) on delete cascade
+);
+
+create table Offerings(
+  University_ID varchar(15) NOT NULL,
+  Class_ID varchar(15) NOT NULL,
+  Subject_code varchar(15) NOT NULL,
+  Semester varchar(15),
+  Year int ,
+  foreign key (University_ID) references University(University_ID) on delete cascade,
+  foreign key (Class_ID) references Class(Class_ID) on delete cascade,
+  foreign key (Subject_code) references Subject(Subject_code) on delete cascade
+);
+
+Create table Attends(
+  University_ID varchar(15) NOT NULL,
+  User_ID varchar(15) NOT NULL,
+  foreign key (University_ID) references University(University_ID) ON DELETE CASCADE,
+  foreign key (User_ID) references User(User_ID) ON DELETE CASCADE
+);
+
+Create table Specializations (
+  Tutor_ID varchar(15) NOT NULL,
+  Specialization varchar(20) NOT NULL,
+  Foreign key (Tutor_ID) references Tutor(User_ID) ON DELETE CASCADE,
+  Foreign key (Subject_code) references Subject(Subject_code) ON DELETE CASCADE
+);
+
+Create table Reserved_by (
+  Session_ID varchar(15) NOT NULL,
+  User_ID varchar(15) NOT NULL,
+  Foreign key(Session_ID) references Sessions(Session_ID) ON DELETE CASCADE,
+  Foreign key(User_ID) references User(User_ID) ON DELETE CASCADE
+);
+
+
+
+
+
+
+CREATE TRIGGER calc_session_total 
+AFTER INSERT ON Sessions
+FOR each row
+set Sessions.Total_cost = Tutor.Hourly_rate * Sessions.Length;
+
+
+CREATE TRIGGER calc_session_total 
+  BEFORE INSERT ON Sessions
+  FOR each row
+BEGIN
+    DECLARE num_hours;
+    DECLARE tutor_cost;
+    DECLARE tot_cost;
+  SELECT T.Hourly_Rate
+      INTO tutor_cost
+	   FROM Tutor T
+    WHERE T.User_ID = NEW.User_ID;
+
+  INSERT INTO Sessions 
+	VALUES (NEW.Session_ID, NEW.Tutor_ID, NEW.Start_time,NEW.Length, NEW.Date, tutor_cost*NEW.Length);
+END
+
+set Sessions.Total_cost = Tutor.Hourly_rate * Sessions.Length;
+CSVS 
+Rows in bold have already been added
+Professor( Prof_ID varchar(15) NOT NULL, First_name varchar(20), Last_name varchar(20) );
+Insert Into Professor Values(‘000000001’,’Lidong’,’Wu’);
+Insert Into Professor Values(‘123123123’,’Drake’,’Shereen’);
+Insert Into Professor Values(‘999999999’,’Andy’,’Hodge’);
+Insert Into Professor Values(‘123456789’,’Irving’,’Jaramillo’);
+Insert Into Professor Values(‘987654321’,’Lillian’,’Woodward’);
+Insert Into Professor Values(‘123987123’,’Zavier’,’Redfern’);
+Insert Into Professor Values(‘000999111’,’Iga’,’Wilkins’);
+Insert Into Professor Values(‘111222333’,’Paloma’,’Townsend’);
+Insert Into Professor Values(‘222333111’,’Mert’,’Beach’);
+Insert Into Professor Values(‘123123999’,’Harper’,’North’);
+Insert Into Professor Values(‘000987123’,’Chloe’,’Gomez’);
+Insert Into Professor Values(‘888777666’,’Gregory’,’House’);
+
+Class( Class_ID varchar(15) NOT NULL, Name varchar(50));
+Insert Into Class Values(‘000000001’,’Database Design’);
+Insert Into Class Values(‘123123000’,‘Fundamentals of Physics’);
+Insert Into Class Values(‘999999111’,’JAVA Programming’);
+Insert Into Class Values(‘000111222’,’Biology for Biologists’);
+Insert Into Class Values(‘987987000’,’Quantum Physics’);
+Insert Into Class Values(‘909131565’,’Shakespearean English’);
+
+Insert Into Class Values(‘319840883’,’Classic English Lit’);
+Insert Into Class Values(‘215310647’,’Modern English Lit’);
+Insert Into Class Values(‘621994885’,’Theoretical Physics’);
+Insert Into Class Values(‘787487837’,’Advanced SQL Programming’);
+Insert Into Class Values(‘557665735’,’Python Programming’);
+Insert Into Class Values(‘146563073’,’Advanced Biology’);
+Insert Into Class Values(‘248497567’,’Micro Biology’);
+Insert Into Class Values(‘277291986’,’Organic Chemistry’);
+Insert Into Class Values(‘940240915’,’Advanced Chemistry’);
+Insert Into Class Values(‘654849937’,’Basic Metaphysics’);
+Insert Into Class Values(‘905846695’,’Meditation 101’);
+Insert Into Class Values(‘294167826’,’Civil Engineering’);
+Insert Into Class Values(‘323188535’,’Structural Engineering’);
+Insert Into Class Values(‘944009634’,’College Algebra’);
+Insert Into Class Values(‘761134851’,’Calculus 1’);
+Insert Into Class Values(‘276213567’,’Calculus 2’);
+Insert Into Class Values(‘292853373’,’Classical Philosophy’);
+Insert Into Class Values(‘162239381’,’Post-Modern Philosophy’);
+Insert Into Class Values(‘718953482’,’Philosophy of Sesame Street’);
+
+
+
+
+University( University_ID varchar(15) NOT NULL, University_name varchar(25) );
+Insert Into University Values(‘0993’,’Uttyler’);
+Insert Into University Values(‘3190’,’Tyler Junior College’);
+Insert Into University Values(‘5278’,’Texas College’);
+
+
+
+
+User( User_ID varchar(15) NOT NULL, Email varchar(25), Birth_date varchar(10),
+ User_name varchar(25), gender varchar(10), First_name varchar(30), Last_name varchar(30));
+Insert into User Values(‘999999999’,’jw123@gmail.com’,’01/10/1996’,’jwaterman’,’male’,’Joshua’,’Waterman’);
+Insert into User Values(‘888111888’,’user1@yahoo.com’,’09/22/2000’,’datuser1’,’female’,’Aiysha’,’Wickens’);
+Insert into User Values(‘588112415’, ‘fdsa@gmail.com’, ‘07/23/1994’ ‘fdsaNumber1’, ‘male’,’Woody’,’Paine’);
+Insert into User Values(‘382626908’, ‘joseph123@yahoo.com’, ‘10/09/1995’, ‘joseph123’, ‘male’,’Caspar’,’Churchill’);
+Insert into User Values(‘123456789’, ‘jessica42@aol.com’, ‘12/12/1997’, ‘jessica99’, ‘female’,’Leila’,’Mitchell’);
+Insert into User Values(‘042436657’, ‘marie@gmail.com’, ‘01/22/1999’, ‘mackey1332’, ‘female’,’Valerie’,’Firth’);
+Insert into User Values(‘648222465’, ‘theWizard@aol.com’, ‘06/06/1985’, ‘theWizard’, ‘male’,’Bodhi’,’Yates’);
+Insert into User Values(‘772341279’, ‘markTwain@flash.net’, ‘09/12/2000’, ‘twain’, ‘male’,’Odin’,’Hodges’);
+Insert into User Values(‘282957923’, ‘vinceW@aol.com’, ‘03/13/1998’, ‘vinceThePrince’, ‘male’,’Usamah’,’Childs’);
+Insert into User Values(‘817563837’, ‘emilia22@flash.net’, ‘05/20/2001’, ‘gameOfThronesGirl’, ‘female’,’Ella’,’Bartlett’);
+Insert into User Values(‘537335763’, ‘nancy99@gmail.com’, ‘02/26/1999’, ‘nancyNicole’, ‘female’,’Dario’,’John’);
+Insert into User Values(‘902104314’, ‘meghanW@gmail.com’, ‘05/15/1996’, ‘meghanator’, ‘female’,’Meghan’,’Walker’);
+Insert into User Values(‘748573957’, ‘andrewWK@gmail.com’, ‘02/09/1999’, ‘andrewWK’, ‘male’, ’Andrew, ’Klein’);
+Insert into User Values(‘289461945’, ‘masterStudent@gmail.com’, ‘09/28/1995’, ‘Educationator’ , ‘male’, ‘John’ , ‘Connor’);
+Insert into User Values(‘098763926’, ‘LOTRnerd@gmail.com’, ‘11/11/1993’, ‘AragornFan’, ‘male’, ‘Mike’,’McClane’);
+Insert into User Values(‘100122322’,‘iLikeTurtles@hotmail.com’,’12/25/1960’,’TurtleLiker’,’male’,’Chet’,’Woodruff’)
+(‘122123444’,‘iLOVETURTLES@email.edu’,’01/20/1990’,’turtleLOVER’,’female’,’Critany’,’Benson’)
+(‘901123321’,‘physicsKing@gmail.com’,’09/09/1997’,’deadANDalive’,’female’,’Elizabeth’,’Young’);
+
+
+
+
+
+
+
+
+Administrator( User_ID varchar(15) NOT NULL, Permissions tinyint);
+NOTE: 1 = Max, 2 = Mid, 3 = Lowest for permissions
+Insert Into Administrator Values(‘999999999’,1);
+Insert Into Administrator Values(‘588112415’, 2);
+Insert Into Administrator Values(‘648222465’, 1);
+Insert Into Administrator Values(‘282957923’, 3);
+
+Tutor( User_ID varchar(15) NOT NULL, Hourly_rate decimal(100, 2) NOT NULL, Ratings decimal(5,1) NOT NULL);
+Insert Into Tutor Values(‘888111888’,10.50,5.0);
+Insert Into Tutor Values(‘588112415’, 23.60, 3.5);
+Insert Into Tutor Values(‘648222465’, 21.25, 4.2);
+Insert Into Tutor Values(‘772341279’, 10.5, 4.8);
+Insert Into Tutor Values(‘100122322’, 20.5, 4.6);
+Insert Into Tutor Values(‘122123444’, 25.5, 4.6);
+Insert Into Tutor Values(‘901123321’, 22.5, 4.6);
+
+
+
+Specializations (Tutor_ID varchar(15),Specialization varchar(20));
+Insert Into Specializations Values(‘888111888’, ‘BIOL’);
+Insert Into Specializations Values(‘100122322’, ‘PHYS’);
+Insert Into Specializations Values(‘100122322’, ‘MPHY’);
+Insert Into Specializations Values(‘588112415’, “ENGL’);
+Insert Into Specializations Values(‘588112415’, ‘MATH’);
+Insert Into Specializations Values(‘648222465’, ‘PHIL’);
+Insert Into Specializations Values(‘648222465’, ‘BIOL’);
+Insert Into Specializations Values(‘772341279’, ‘ENGL’);
+
+
+
+
+
+
+Student(User_ID varchar(15) NOT NULL,Seniority varchar(15));
+Insert Into User_ID Values(‘999999999’,’Grad-Student’);
+Insert Into User_ID Values(‘382626908’, ‘Freshman’);
+Insert Into User_ID Values(‘123456789’, ‘Sophomore’);
+Insert Into User_ID Values(‘042436657’, ‘Senior’);
+Insert Into User_ID Values(‘282957923’, ‘Grad-student’);
+Insert Into User_ID Values(‘817563837’, ‘Freshman’);
+Insert Into User_ID Values(‘537335763’, ‘Sophomore’);
+
+Insert Into User_ID Values(‘902104314’, ‘Sophomore’);
+Insert Into User_ID Values(‘748573957’, ‘Senior’);
+Insert Into User_ID Values(‘289461945’, ‘Freshman’);
+Insert Into User_ID Values(‘098763926’, ‘Sophomore’);
+
+
+
+
+Subject(Subject_code varchar(4), Subject_name varchar(35) NOT NULL);
+Insert into Subject Values(‘COSC’, ‘Computer Science’);
+Insert into Subject Values(‘BIOL’,’Biology’);
+Insert into Subject Values(‘CHEM’,’Chemistry’);
+Insert into Subject Values(‘MPHY’,‘Metaphysics’);
+Insert into Subject Values(‘ENGN’,’Engineering’);
+Insert into Subject Values(‘MATH’,’Mathematics’);
+Insert into Subject Values(‘PHIL’,’Philosophy’);
+Insert into Subject Values(‘ENGL’, ‘English’);
+Insert into Subject Values(‘PHYS’, ‘Physics’);
+Insert into Subject Values(‘MEDI’,’Meditation’)
+
+
+
+Sessions(Session_ID varchar(15) NOT NULL,Tutor_ID varchar(15) NOT NULL,Start_time varchar(15) NOT NULL, Length int, Date varchar(20), Class_ID varchar(15));
+Insert Into Sessions Values(‘000000001’,’888111888’,’10:50am’, 1,‘04/30/2020’, ‘000000001’);
+Insert Into Sessions Values(‘123000042’,‘588112415’, ‘8:00am’, 2, ‘04/22/2020’, ‘123123000’);
+Insert Into Sessions Values(‘674324325’,’772341279’, ‘2:00pm’,1,’05/01/2020’, ‘909131565’);
+Insert Into Sessions Values(‘795511476’,‘888111888’, ‘5:00pm’,3, ‘05/07/2020’, ‘000111222’);
+Insert Into Sessions Values(‘135049890’,‘772341279’, ‘3:00pm’,2,’04/24/2020’, ‘909131565’);
+Insert Into Sessions Values(‘674324366’,’772341279’, ‘4:00pm’,1,’05/02/2020’, ‘909131565’);
+Insert Into Sessions Values(‘000000002’,’888111888’,’11:00am’, 1,‘05/03/2020’, ‘000000001’);
+Insert Into Sessions Values(‘000000003’,’588112415’,’11:00am’, 1,‘05/05/2020’, ‘123123000’);
+Insert Into Sessions Values(‘000000004’,’ 588112415’,’1:00pm’, 1,‘05/04/2020’, ‘123123000’);
+Insert Into Sessions Values(‘000000005’,’888111888’,’1:00pm’, 1,‘05/03/2020’, ‘000000001’);
+Insert Into Sessions Values(‘000000006’,’888111888’,’2:00pm’, 2,‘05/02/2020’, ‘000111222’);
+Insert Into Sessions Values(‘000000007’,’888111888’,’4:00pm’, 1,‘05/01/2020’, ‘000111222’);
+
+
+Location(Street varchar(20), Zip_code int, Location_name varchar(20),Session_ID varchar(15));
+Insert into Location Values(‘123 University St’,75758,’CoffeePlace’,’000000001’);
+Insert into Location Values(‘5252 Oak Cr’, 75752, ‘Bookstore’,‘123000042’);
+Insert into Location Values(‘14641 loop 323’, 75799, ‘Starbucks’,‘674324325’);
+Insert into Location Values(‘1241 Mockingbird Ln’, 75799, ‘Public Library’,‘795511476’);
+Insert into Location Values(‘1421 Hell St’, 75799, ‘The Park’,‘135049890’);
+
+Insert into Location Values(‘1234 University St’,75758,’Donut Palace’,’674324366’);
+Insert into Location Values(‘5767 Oat Cir’, 75752, ‘Store’,‘000000002’);
+
+Insert into Location Values(‘14641 Mockingjay st’, 75799, ‘Comics r us’,‘000000003’);
+Insert into Location Values(‘1241 Mockingbird Ln’, 75799, ‘Public Library’,‘000000004’);
+Insert into Location Values(‘1420 Heaven St’, 75799, ‘The Park’,‘000000005’);
+Insert into Location Values(‘123834 Ivy University St’,75758,’Cafe Place’,’000000006’);
+Insert into Location Values(‘5652 Oak Creek’, 75752, ‘Community Center’,‘000000007’);
+
+
+
+
+
+Required_materials( Description varchar(50),Name varchar(25),Session_ID varchar(15));
+Insert Into Required_Materials Values(‘The microbio book’,’Required Books’,’000000001’);
+Insert Into Required_Materials Values(‘Calculator that can do math’,’TI-84 Calculator’,‘000000001’);
+Insert Into Required_Materials Values(‘English Poetry Book’,’The Sun and Her Flowers’,‘674324325’);
+Insert Into Required_Materials Values(‘Dictionary of words’,’Dictionary’,‘674324325’);
+
+Insert Into Required_Materials Values(‘Physics Textbook’,’Physics for Beginners’,‘123000042’);
+Insert Into Required_Materials Values(‘A book by Shakespeare’,’Romeo and Juliet’,‘674324325’);
+Insert Into Required_Materials Values(‘Biology study guide’,’Class notes’,‘795511476’);
+Insert Into Required_Materials Values(‘DBMS Software’,’Laptop’,‘000000002’);
+Insert Into Required_Materials Values(‘Physics class notes’,’Class Notes’,‘000000004’);
+Insert Into Required_Materials Values(‘Textbook from the course’,’Physics for Beginners’,‘000000004’);
+Insert Into Required_Materials Values(‘A computer with internet access’,’Laptop’,‘000000004’);
+Insert Into Required_Materials Values(‘Dissection kit’,’Dissection kit’,‘000000006’);
+
+
+NOTE: Figure out if needs Year and Semester
+Classes_taught (Class_ID varchar(15) NOT NULL,Prof_ID varchar(15) NOT NULL);
+Insert Into Classes_taught Values(‘000000001’,‘000000001’);
+Insert Into Classes_taught Values(‘787487837’,‘000000001’);
+
+
+
+Insert Into Classes_taught Values(‘987987000’,‘888777666’);
+Insert Into Classes_taught Values(‘123123000’,‘888777666’);
+Insert Into Classes_taught Values(‘654849937’,‘888777666’);
+
+
+Insert Into Classes_taught Values(‘000111222’,‘111222333’);
+Insert Into Classes_taught Values(‘146563073’,‘111222333’);
+Insert Into Classes_taught Values(‘248497567’,‘111222333’);
+
+Insert Into Classes_taught Values(‘277291986’,‘123123123’);
+Insert Into Classes_taught Values(‘940240915’,‘123123123’);
+
+
+Insert Into Classes_taught Values(‘999999111’,‘999999999’);
+Insert Into Classes_taught Values(‘557665735’,‘999999999’);
+
+Insert Into Classes_taught Values(‘909131565’,‘123456789’);
+Insert Into Classes_taught Values(‘319840883’,‘123456789’);
+Insert Into Classes_taught Values(‘215310647’,‘123456789’);
+
+Insert Into Classes_taught Values(‘621994885’,‘987654321’);
+
+Insert Into Classes_taught Values(‘944009634’,‘123987123’);
+Insert Into Classes_taught Values(‘761134851’,‘123987123’);
+Insert Into Classes_taught Values(‘276213567’,‘123987123’);
+
+Insert Into Classes_taught Values(‘292853373’,‘000999111’);
+Insert Into Classes_taught Values(‘162239381’,‘000999111’);
+Insert Into Classes_taught Values(‘718953482’,‘000999111’);
+
+Insert Into Classes_taught Values(‘905846695’,‘222333111’);
+
+Insert Into Classes_taught Values(‘294167826’,‘123123999’);
+
+
+Insert Into Classes_taught Values(‘323188535’,‘000987123’);
+
+
+
+
+
+
+Offerings(University_ID varchar(15) NOT NULL, Class_ID varchar(15) NOT NULL, Subject_code varchar(15) NOT NULL, Semester varchar(15), Year int);
+
+Insert Into Offerings Values(‘0993’,‘000000001’,’COSC’,’FALL’,2017);
+Insert Into Offerings Values(‘0993’,’000000001’,’COSC’,’SPRING’,2017);
+Insert Into Offerings Values(‘0993’,’787487837’,’COSC’,’SPRING’,2017);
+Insert Into Offerings Values(‘0993’,‘000000001’,’COSC’,’FALL’,2018);
+Insert Into Offerings Values(‘0993’,’000000001’,’COSC’,’SPRING’,2018);
+Insert Into Offerings Values(‘0993’,’787487837’,’COSC’,’SPRING’,2018);
+Insert Into Offerings Values(‘0993’,‘000000001’,’COSC’,’FALL’,2019);
+Insert Into Offerings Values(‘0993’,’000000001’,’COSC’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,’787487837’,’COSC’,’SPRING’,2019);
+
+Insert Into Offerings Values(‘0993’,‘000000001’,’COSC’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’000000001’,’COSC’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,‘654849937’,’MPHY’,’FALL’,2020);
+
+Insert Into Offerings Values(‘0993’,‘987987000’,’PHYS’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,‘123123000’,’PHYS’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’999999111’,COSC’’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,‘000111222’,’BIOL’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’909131565’,’ENGL’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,‘319840883’,’ENGL’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’215310647’,’ENGL’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,‘621994885’,’PHYS’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’557665735’,’COSC’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,’146563073’,’BIOL’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,‘248497567’,’BIOL’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’277291986’,’CHEM’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,‘940240915’,’CHEM’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’654849937’,’PHYS’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,’905846695’,’MEDI’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,‘294167826’,’ENGN’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’323188535’,’ENGN’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,‘944009634’,’MATH’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’761134851’,’MATH’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,‘276213567’,’MATH’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’292853373’,’PHIL’,’SPRING’,2019);
+Insert Into Offerings Values(‘0993’,‘162239381’,’PHIL’,’FALL’,2020);
+Insert Into Offerings Values(‘0993’,’718953482’,’PHIL’,’SPRING’,2019);
+
+Insert Into Offerings Values(‘3190’,’277291986’,’CHEM’,’SPRING’,2019);
+Insert Into Offerings Values(‘3190’,‘277291986’,’CHEM’,’FALL’,2020);
+Insert Into Offerings Values(‘3190’,’940240915’,’CHEM’,’SPRING’,2019);
+
+Insert Into Offerings Values(‘5278’,’909131565’,’ENGL’,’SPRING’,2019);
+Insert Into Offerings Values(‘5278’,‘319840883’,’ENGL’,’FALL’,2020);
+Insert Into Offerings Values(‘5278’,’215310647’,’ENGL’,’SPRING’,2019);
+
+Create table Attends( University_ID varchar(15) NOT NULL,User_ID varchar(15) NOT NULL);
+Insert Into Attends Values(‘999999999’,’0993’);
+
+Insert Into Attends Values(382626908’, ‘0993‘);
+Insert Into Attends Values(382626908’, ‘3190‘);
+
+Insert Into Attends Values(‘123456789’, ’0993’);
+Insert Into Attends Values(‘123456789’, ’5278’);
+
+Insert Into Attends Values(‘042436657’, ‘0993’);
+
+Insert Into Attends Values(‘282957923’, ‘0993’);
+
+Insert Into Attends Values(‘817563837’, ‘0993’);
+Insert Into Attends Values(‘817563837’, ‘3190’);
+
+Insert Into Attends Values(‘537335763’, ‘0993’);
+Insert Into Attends Values(‘537335763’, ‘5278’);
+
+
+Insert Into Attends Values(‘902104314’, ‘0993’);
+Insert Into Attends Values(‘902104314’, ‘3190’);
+
+Insert Into Attends Values(‘748573957’, ‘0993’);
+Insert Into Attends Values(‘748573957’, ‘5278’);
+
+Insert Into Attends Values(‘289461945’, ‘0993’);
+
+Insert Into Attends Values(‘098763926’, ‘0993’);
+
+
+
+
+
+
+
+
+
+
+
+
+
+Create table Reserved_by (Session_ID varchar(15) NOT NULL,User_ID varchar(15) NOT NULL);
+Insert Into Reserved_by Values(‘000000004’, ‘902104314’);
+Insert Into Reserved_by Values(‘000000004’, ‘817563837’);
+Insert Into Reserved_by Values(‘000000004’, ‘537335763’);
+Insert Into Reserved_by Values(‘000000004’, ‘042436657’);
+Insert Into Reserved_by Values(‘000000004’, ‘123456789’);
+Insert Into Reserved_by Values(‘000000004’, ‘289461945’);
+
+Insert Into Reserved_by Values(‘000000001’, ‘098763926’);
+Insert Into Reserved_by Values(‘000000001’, ‘289461945’);
+Insert Into Reserved_by Values(‘000000001’, ‘042436657’);
+
+Insert Into Reserved_by Values(‘000000006’,’999999999’);
+Insert Into Reserved_by Values(‘000000006’,‘748573957’);
+
+Insert Into Reserved_by Values(‘123000042’,’817563837’);
+Insert Into Reserved_by Values(‘123000042’,’537335763’);
+
+Insert Into Reserved_by Values(‘674324325’,‘289461945’);
+Insert Into Reserved_by Values(‘674324325’,’999999999’);
+
+Insert Into Reserved_by Values(‘674324366’,’537335763’);
+
+Insert Into Reserved_by Values(‘795511476’,’282957923’);
+Insert Into Reserved_by Values(‘135049890’,’999999999’);
+
+Insert Into Reserved_by Values(‘000000002’,’282957923’);
+Insert Into Reserved_by Values(‘000000003’,’382626908’);
+Insert Into Reserved_by Values(‘000000005’,’042436657’);
+Insert Into Reserved_by Values(‘000000007’,’123456789’);
+
+
+
+
+CREATE TRIGGER calc_session_total 
+  BEFORE INSERT 
+  ON Sessions FOR EACH ROW
+  
+BEGIN
+    DECLARE num_hours int;
+    DECLARE tutor_cost int;
+    DECLARE tot_cost int;
+    
+  SELECT T.Hourly_Rate
+       INTO tutor_cost
+	   FROM Tutor T
+    WHERE T.User_ID = NEW.User_ID;
+
+  INSERT INTO Sessions 
+	VALUES (NEW.Session_ID, NEW.Tutor_ID, NEW.Start_time,NEW.Length, NEW.Date, tutor_cost*NEW.Length);
+END
